@@ -39,5 +39,11 @@ export async function migrarBanco(db: SQLiteDatabase) {
       aquecimento INTEGER NOT NULL DEFAULT 0,
       obs TEXT
     );
+
+        CREATE TABLE IF NOT EXISTS rascunhos (
+      treino_id INTEGER PRIMARY KEY,
+      dados TEXT NOT NULL,
+      atualizado TEXT NOT NULL
+    );
   `);
 }
