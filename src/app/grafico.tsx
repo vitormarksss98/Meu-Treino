@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
+import { useCallback, useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 
 type Exercicio = { id: number; nome: string };
-type Linha = { sessao_id: number; data: string; carga: number; reps: number };
+type Linha = { sessao_id: number; data: string; carga: number; reps: number; tipo: string };
 type Ponto = { data: string; label: string; rm: number; carga: number; volume: number };
 type Metrica = "rm" | "carga" | "volume";
 
@@ -46,7 +46,7 @@ export default function Grafico() {
         `SELECT DISTINCT e.id, e.nome
          FROM exercicios e
          JOIN series s ON s.exercicio_id = e.id
-         WHERE s.aquecimento = 0
+         WHERE s.tipo != 'aq'
          ORDER BY e.nome`
       ).then((lista) => {
         setExercicios(lista);
@@ -63,12 +63,12 @@ export default function Grafico() {
       }
       const corte = dias > 0 ? new Date(Date.now() - dias * 86400000).toISOString() : "";
 
-      // somente séries válidas: aquecimento = 0
+            // aquecimento fica de fora de tudo; drop entra só no volume
       const linhas = await db.getAllAsync<Linha>(
-        `SELECT se.id AS sessao_id, se.data, s.carga, s.reps
+        `SELECT se.id AS sessao_id, se.data, s.carga, s.reps, s.tipo
          FROM series s
          JOIN sessoes se ON se.id = s.sessao_id
-         WHERE s.exercicio_id = ? AND s.aquecimento = 0 AND se.data >= ?
+         WHERE s.exercicio_id = ? AND s.tipo != 'aq' AND se.data >= ?
          ORDER BY se.data, s.id`,
         selecionado,
         corte
@@ -76,26 +76,32 @@ export default function Grafico() {
 
       const porSessao = new Map<number, Ponto>();
       for (const l of linhas) {
-        const rm = l.carga * (1 + l.reps / 30); // fórmula de Epley
+        const conta = l.tipo === "normal" || l.tipo === "falha";
+        const rm = conta ? l.carga * (1 + l.reps / 30) : 0;
+        const cargaValida = conta ? l.carga : 0;
         const atual = porSessao.get(l.sessao_id);
         if (!atual) {
           porSessao.set(l.sessao_id, {
             data: l.data,
             label: formatarData(l.data),
             rm,
-            carga: l.carga,
+            carga: cargaValida,
             volume: l.carga * l.reps,
           });
         } else {
           atual.rm = Math.max(atual.rm, rm);
-          atual.carga = Math.max(atual.carga, l.carga);
+          atual.carga = Math.max(atual.carga, cargaValida);
           atual.volume += l.carga * l.reps;
         }
       }
-      setPontos(Array.from(porSessao.values()));
+      setPontos(
+        Array.from(porSessao.values()).filter((p) =>
+          metrica === "volume" ? p.volume > 0 : p[metrica] > 0
+        )
+      );
     }
     carregar();
-  }, [db, selecionado, dias]);
+  }, [db, selecionado, dias, metrica]);
 
   const valores = pontos.map((p) => arredondar(p[metrica]));
   const min = valores.length ? Math.min(...valores) : 0;
