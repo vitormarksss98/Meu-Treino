@@ -24,7 +24,7 @@ export default function Registrar() {
         keyExtractor={(t) => String(t.id)}
         ListEmptyComponent={
           <Text style={styles.vazio}>
-            Nenhum treino cadastrado. Crie um na tela "Editar treino".
+            Nenhum treino cadastrado. Crie um na tela Editar treino.
           </Text>
         }
         renderItem={({ item }) => (

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useKeepAwake } from "expo-keep-awake";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -85,11 +85,11 @@ export default function Sessao() {
 
   const db = useSQLiteContext();
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const treinoId = Number(id);
 
-  const [nomeTreino, setNomeTreino] = useState("Treino de hoje");
   const [exs, setExs] = useState<Ex[]>([]);
   const [aberto, setAberto] = useState<number | null>(0);
   const [carregado, setCarregado] = useState(false);
@@ -101,9 +101,9 @@ export default function Sessao() {
   const [notaEdit, setNotaEdit] = useState<{ ei: number; texto: string } | null>(null);
 
   const finalizado = useRef(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<any>(null);
   const scrollY = useRef(0);
-  const inputs = useRef<Record<string, TextInput | null>>({});
+  const inputs = useRef<any>({});
   const focoAtual = useRef<string | null>(null);
   const kbTopo = useRef(0);
 
@@ -111,7 +111,7 @@ export default function Sessao() {
   function rolarParaFoco() {
     const chave = focoAtual.current;
     if (!chave || kbTopo.current === 0) return;
-    inputs.current[chave]?.measureInWindow((_x, y, _w, h) => {
+    inputs.current[chave]?.measureInWindow((_x: number, y: number, _w: number, h: number) => {
       const limite = kbTopo.current - 40;
       const fundo = y + h;
       if (fundo > limite) {
@@ -148,7 +148,9 @@ export default function Sessao() {
         "SELECT nome FROM treinos WHERE id = ?",
         treinoId
       );
-      if (t) setNomeTreino(t.nome);
+      if (t) {
+        navigation.setOptions({ title: t.nome });
+      }
 
       const base = await db.getAllAsync<{
         exercicio_id: number;
@@ -247,12 +249,14 @@ export default function Sessao() {
       setAberto(primeiro === -1 ? null : primeiro);
       setCarregado(true);
     },
-    [db, treinoId]
+    [db, treinoId, navigation]
   );
 
-  useEffect(() => {
-    carregar(true);
-  }, [carregar]);
+  useFocusEffect(
+    useCallback(() => {
+      carregar(true);
+    }, [carregar])
+  );
 
   // ---------- rascunho automático ----------
   useEffect(() => {
@@ -438,9 +442,8 @@ export default function Sessao() {
   if (carregado && exs.length === 0) {
     return (
       <View style={styles.container}>
-        <Stack.Screen options={{ title: nomeTreino }} />
         <Text style={styles.vazio}>
-          Este treino ainda não tem exercícios. Adicione na tela "Editar treino".
+          Este treino ainda nao tem exercicios. Adicione na tela Editar treino.
         </Text>
       </View>
     );
@@ -448,7 +451,6 @@ export default function Sessao() {
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 12 }]}>
-      <Stack.Screen options={{ title: nomeTreino }} />
 
       {restaurado && (
         <View style={styles.aviso}>
@@ -651,7 +653,7 @@ export default function Sessao() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: cores.fundo },
   vazio: { color: cores.suave, textAlign: "center", marginTop: 32 },
-  oculto: { display: "none" },
+  oculto: { opacity: 0, pointerEvents: "none" },
   aviso: {
     flexDirection: "row",
     justifyContent: "space-between",

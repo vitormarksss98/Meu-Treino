@@ -17,12 +17,11 @@ type Props = {
 };
 
 export default function BarraDescanso({ fim, setFim, duracao, setDuracao }: Props) {
-  const [agora, setAgora] = useState(Date.now());
+  const [agora, setAgora] = useState(() => Date.now());
 
   // atualiza o relógio 4x por segundo enquanto o timer está ativo
   useEffect(() => {
     if (fim === null) return;
-    setAgora(Date.now());
     const id = setInterval(() => setAgora(Date.now()), 250);
     return () => clearInterval(id);
   }, [fim]);
