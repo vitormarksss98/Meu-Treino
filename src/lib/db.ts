@@ -1,6 +1,6 @@
 import { SQLiteDatabase } from "expo-sqlite";
 
-const VERSAO_ATUAL = 2;
+const VERSAO_ATUAL = 3;
 
 export async function migrarBanco(db: SQLiteDatabase) {
   await db.execAsync("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
@@ -55,6 +55,17 @@ export async function migrarBanco(db: SQLiteDatabase) {
         ALTER TABLE series ADD COLUMN tipo TEXT NOT NULL DEFAULT 'normal';
         UPDATE series SET tipo = 'aq' WHERE aquecimento = 1;
         ALTER TABLE exercicios ADD COLUMN nota TEXT;
+      `);
+    }
+
+    if (versao < 3) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS medidas (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          data TEXT NOT NULL,
+          peso REAL, gordura REAL, cintura REAL, quadril REAL, peito REAL,
+          braco_d REAL, braco_e REAL, coxa_d REAL, coxa_e REAL, panturrilha REAL
+        );
       `);
     }
 

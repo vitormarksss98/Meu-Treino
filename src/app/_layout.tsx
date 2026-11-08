@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { SQLiteProvider } from "expo-sqlite";
+import { StatusBar } from "expo-status-bar";
 import { migrarBanco } from "../lib/db";
 import { cores } from "../lib/tema";
 
@@ -23,6 +23,7 @@ export default function RootLayout() {
         <Stack.Screen name="treino/[id]" options={{ title: "Treino" }} />
         <Stack.Screen name="sessao/[id]" options={{ title: "Treino de hoje" }} />
         <Stack.Screen name="grafico" options={{ title: "Gráfico" }} />
+        <Stack.Screen name="corpo" options={{ title: "Peso e medidas" }} />
       </Stack>
     </SQLiteProvider>
   );

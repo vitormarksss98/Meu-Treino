@@ -1,9 +1,9 @@
-import { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
+import { useCallback, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { cores } from "../lib/tema";
 
 type Icone = React.ComponentProps<typeof Ionicons>["name"];
@@ -107,6 +107,12 @@ export default function Inicio() {
           titulo="Ver gráfico"
           descricao="Acompanhe sua evolução"
           onPress={() => router.push("/grafico")}
+        />
+        <Cartao
+          icone="body-outline"
+          titulo="Peso e medidas"
+          descricao="Acompanhe seu corpo"
+          onPress={() => router.push("/corpo")}
         />
       </View>
     </SafeAreaView>
