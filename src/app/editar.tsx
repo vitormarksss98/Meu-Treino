@@ -62,6 +62,8 @@ export default function Editar() {
         </Pressable>
       </View>
 
+      <Text style={styles.dica}>Toque para editar. Segure para excluir.</Text>
+
       <FlatList
         data={treinos}
         keyExtractor={(t) => String(t.id)}
@@ -78,7 +80,6 @@ export default function Editar() {
           </Pressable>
         )}
       />
-      <Text style={styles.dica}>Toque para editar. Segure para excluir.</Text>
     </View>
   );
 }
@@ -110,5 +111,5 @@ const styles = StyleSheet.create({
   },
   textoItem: { color: "#fff", fontSize: 18 },
   vazio: { color: "#888", textAlign: "center", marginTop: 32 },
-  dica: { color: "#666", textAlign: "center", paddingTop: 8 },
+  dica: { color: "#666", textAlign: "center", paddingTop: 8, marginTop: 8 },
 });
